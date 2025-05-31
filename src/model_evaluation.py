@@ -13,13 +13,13 @@ log_dir = 'logs'
 os.makedirs(log_dir, exist_ok=True)
 
 #loggin configuration
-logger = logging.getLogger('model_evalution')
+logger = logging.getLogger('model_evaluation')
 logger.setLevel('DEBUG')
 
 console_handler = logging.StreamHandler()
 console_handler.setLevel('DEBUG')
 
-log_file_path = os.path.join(log_dir, 'model_evalution.log')
+log_file_path = os.path.join(log_dir, 'model_evaluation.log')
 file_handler = logging.FileHandler(log_file_path)
 file_handler.setLevel('DEBUG')
 
@@ -49,6 +49,7 @@ def load_params(params_path: str) -> dict:
         raise
 
 def load_model(file_path: str):
+    # Load the trained model from a file
     try:
         with open(file_path, 'rb') as file:
             model = pickle.load(file)
@@ -87,7 +88,7 @@ def evaluate_model(clf, X_test: np.ndarray, y_test: np.ndarray) -> dict:
 
         metrics_dict = {
             'accuracy': accuracy,
-            'precision' : precision,
+            'precision': precision,
             'recall': recall,
             'auc': auc
         }
@@ -123,12 +124,13 @@ def main():
         metrics = evaluate_model(clf, X_test, y_test)
         y_pred = clf.predict(X_test)
 
-        # Experiment tracking using DVCLIVE
-        #with Live(save_dvc_exp=True) as live:
-        #    live.log_metrics('accuracy', accuracy_score(y_test, y_pred))
-        #    live.log_metrics('precision', precision_score(y_test, y_pred))
-        #    live.log_metrics('recall', recall_score(y_test, y_pred))
-        #    live.log_params(params)
+        #Experiment tracking using DVCLIVE
+        with Live(save_dvc_exp=True) as live:
+            live.log_metric('accuracy', accuracy_score(y_test, y_pred))
+            live.log_metric('precision', precision_score(y_test, y_pred))
+            live.log_metric('recall', recall_score(y_test, y_pred))
+            
+            live.log_params(params)
 
         save_metrics(metrics, 'reports/metrics.json')
     except Exception as e:
